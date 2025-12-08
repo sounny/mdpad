@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MDPad - A beautiful online markdown editor with live preview, Word-like page view, and comprehensive editing tools.">
+    <title>MDPad - Markdown Notepad</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" id="hljs-light">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-dark" disabled>
+    
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app" class="app">
+        <!-- Header / Main Toolbar -->
+        <header class="toolbar toolbar--main" id="mainToolbar">
+            <div class="toolbar__brand">
+                <span class="toolbar__logo">📝</span>
+                <span class="toolbar__title">MDPad</span>
+            </div>
+            
+            <nav class="toolbar__menu">
+                <!-- File Menu -->
+                <div class="dropdown" id="fileMenu">
+                    <button class="dropdown__trigger" aria-haspopup="true" aria-expanded="false">
+                        File
+                        <svg class="dropdown__arrow" width="12" height="12" viewBox="0 0 12 12"><path d="M3 5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                    </button>
+                    <div class="dropdown__content">
+                        <button class="dropdown__item" id="btnNew" title="New Document (Ctrl+N)">
+                            <span class="dropdown__icon">📄</span> New
+                            <span class="dropdown__shortcut">Ctrl+N</span>
+                        </button>
+                        <button class="dropdown__item" id="btnOpen" title="Open File (Ctrl+O)">
+                            <span class="dropdown__icon">📂</span> Open...
+                            <span class="dropdown__shortcut">Ctrl+O</span>
+                        </button>
+                        <div class="dropdown__divider"></div>
+                        <button class="dropdown__item" id="btnSave" title="Save to Browser (Ctrl+S)">
+                            <span class="dropdown__icon">💾</span> Save
+                            <span class="dropdown__shortcut">Ctrl+S</span>
+                        </button>
+                        <button class="dropdown__item" id="btnDownload" title="Download as .md">
+                            <span class="dropdown__icon">⬇️</span> Download .md
+                        </button>
+                        <button class="dropdown__item" id="btnExportPDF" title="Export as PDF">
+                            <span class="dropdown__icon">📑</span> Export PDF
+                        </button>
+                        <div class="dropdown__divider"></div>
+                        <button class="dropdown__item" id="btnPrint" title="Print (Ctrl+P)">
+                            <span class="dropdown__icon">🖨️</span> Print
+                            <span class="dropdown__shortcut">Ctrl+P</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Edit Menu -->
+                <div class="dropdown" id="editMenu">
+                    <button class="dropdown__trigger" aria-haspopup="true" aria-expanded="false">
+                        Edit
+                        <svg class="dropdown__arrow" width="12" height="12" viewBox="0 0 12 12"><path d="M3 5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                    </button>
+                    <div class="dropdown__content">
+                        <button class="dropdown__item" id="btnUndo" title="Undo (Ctrl+Z)">
+                            <span class="dropdown__icon">↩️</span> Undo
+                            <span class="dropdown__shortcut">Ctrl+Z</span>
+                        </button>
+                        <button class="dropdown__item" id="btnRedo" title="Redo (Ctrl+Y)">
+                            <span class="dropdown__icon">↪️</span> Redo
+                            <span class="dropdown__shortcut">Ctrl+Y</span>
+                        </button>
+                        <div class="dropdown__divider"></div>
+                        <button class="dropdown__item" id="btnSelectAll" title="Select All (Ctrl+A)">
+                            <span class="dropdown__icon">📋</span> Select All
+                            <span class="dropdown__shortcut">Ctrl+A</span>
+                        </button>
+                        <button class="dropdown__item" id="btnFind" title="Find (Ctrl+F)">
+                            <span class="dropdown__icon">🔍</span> Find & Replace
+                            <span class="dropdown__shortcut">Ctrl+F</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Insert Menu -->
+                <div class="dropdown" id="insertMenu">
+                    <button class="dropdown__trigger" aria-haspopup="true" aria-expanded="false">
+                        Insert
+                        <svg class="dropdown__arrow" width="12" height="12" viewBox="0 0 12 12"><path d="M3 5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                    </button>
+                    <div class="dropdown__content">
+                        <button class="dropdown__item" id="btnInsertLink" title="Insert Link">
+                            <span class="dropdown__icon">🔗</span> Link
+                        </button>
+                        <button class="dropdown__item" id="btnInsertImage" title="Insert Image">
+                            <span class="dropdown__icon">🖼️</span> Image
+                        </button>
+                        <button class="dropdown__item" id="btnInsertTable" title="Insert Table">
+                            <span class="dropdown__icon">📊</span> Table
+                        </button>
+                        <div class="dropdown__divider"></div>
+                        <button class="dropdown__item" id="btnInsertCode" title="Insert Code Block">
+                            <span class="dropdown__icon">💻</span> Code Block
+                        </button>
+                        <button class="dropdown__item" id="btnInsertQuote" title="Insert Blockquote">
+                            <span class="dropdown__icon">💬</span> Blockquote
+                        </button>
+                        <button class="dropdown__item" id="btnInsertHR" title="Insert Horizontal Rule">
+                            <span class="dropdown__icon">➖</span> Horizontal Rule
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- View Menu -->
+                <div class="dropdown" id="viewMenu">
+                    <button class="dropdown__trigger" aria-haspopup="true" aria-expanded="false">
+                        View
+                        <svg class="dropdown__arrow" width="12" height="12" viewBox="0 0 12 12"><path d="M3 5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                    </button>
+                    <div class="dropdown__content">
+                        <button class="dropdown__item" id="btnViewRaw" title="Raw Markdown View">
+                            <span class="dropdown__icon">📝</span> Raw
+                        </button>
+                        <button class="dropdown__item active" id="btnViewSplit" title="Split View">
+                            <span class="dropdown__icon">📐</span> Split
+                        </button>
+                        <button class="dropdown__item" id="btnViewPreview" title="Preview Only">
+                            <span class="dropdown__icon">👁️</span> Preview
+                        </button>
+                        <div class="dropdown__divider"></div>
+                        <button class="dropdown__item" id="btnZoomIn" title="Zoom In">
+                            <span class="dropdown__icon">🔍</span> Zoom In
+                            <span class="dropdown__shortcut">Ctrl++</span>
+                        </button>
+                        <button class="dropdown__item" id="btnZoomOut" title="Zoom Out">
+                            <span class="dropdown__icon">🔍</span> Zoom Out
+                            <span class="dropdown__shortcut">Ctrl+-</span>
+                        </button>
+                        <button class="dropdown__item" id="btnZoomReset" title="Reset Zoom">
+                            <span class="dropdown__icon">↺</span> Reset Zoom
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Help Menu -->
+                <div class="dropdown" id="helpMenu">
+                    <button class="dropdown__trigger" aria-haspopup="true" aria-expanded="false">
+                        Help
+                        <svg class="dropdown__arrow" width="12" height="12" viewBox="0 0 12 12"><path d="M3 5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                    </button>
+                    <div class="dropdown__content">
+                        <button class="dropdown__item" id="btnMarkdownGuide">
+                            <span class="dropdown__icon">📖</span> Markdown Guide
+                        </button>
+                        <button class="dropdown__item" id="btnKeyboardShortcuts">
+                            <span class="dropdown__icon">⌨️</span> Keyboard Shortcuts
+                        </button>
+                        <div class="dropdown__divider"></div>
+                        <button class="dropdown__item" id="btnAbout">
+                            <span class="dropdown__icon">ℹ️</span> About MDPad
+                        </button>
+                    </div>
+                </div>
+            </nav>
+            
+            <div class="toolbar__actions">
+                <button class="btn btn--icon" id="btnDarkMode" title="Toggle Dark Mode">
+                    <span class="icon icon--light">🌙</span>
+                    <span class="icon icon--dark">☀️</span>
+                </button>
+            </div>
+        </header>
+        
+        <!-- Formatting Toolbar -->
+        <div class="toolbar toolbar--format" id="formatToolbar">
+            <div class="toolbar__group">
+                <button class="btn btn--tool" id="btnBold" title="Bold (Ctrl+B)">
+                    <strong>B</strong>
+                </button>
+                <button class="btn btn--tool" id="btnItalic" title="Italic (Ctrl+I)">
+                    <em>I</em>
+                </button>
+                <button class="btn btn--tool" id="btnStrikethrough" title="Strikethrough">
+                    <s>S</s>
+                </button>
+                <button class="btn btn--tool" id="btnInlineCode" title="Inline Code">
+                    <code>&lt;/&gt;</code>
+                </button>
+            </div>
+            
+            <div class="toolbar__divider"></div>
+            
+            <div class="toolbar__group">
+                <select class="select select--heading" id="selectHeading" title="Heading Level">
+                    <option value="">Paragraph</option>
+                    <option value="1">Heading 1</option>
+                    <option value="2">Heading 2</option>
+                    <option value="3">Heading 3</option>
+                    <option value="4">Heading 4</option>
+                    <option value="5">Heading 5</option>
+                    <option value="6">Heading 6</option>
+                </select>
+            </div>
+            
+            <div class="toolbar__divider"></div>
+            
+            <div class="toolbar__group">
+                <button class="btn btn--tool" id="btnBulletList" title="Bullet List">
+                    <span>•−</span>
+                </button>
+                <button class="btn btn--tool" id="btnNumberedList" title="Numbered List">
+                    <span>1.</span>
+                </button>
+                <button class="btn btn--tool" id="btnTaskList" title="Task List">
+                    <span>☑</span>
+                </button>
+            </div>
+            
+            <div class="toolbar__divider"></div>
+            
+            <div class="toolbar__group">
+                <button class="btn btn--tool" id="btnBlockquote" title="Blockquote">
+                    <span>"</span>
+                </button>
+                <button class="btn btn--tool" id="btnCodeBlock" title="Code Block">
+                    <span>{ }</span>
+                </button>
+                <button class="btn btn--tool" id="btnLink" title="Insert Link (Ctrl+K)">
+                    <span>🔗</span>
+                </button>
+                <button class="btn btn--tool" id="btnImage" title="Insert Image">
+                    <span>🖼️</span>
+                </button>
+            </div>
+            
+            <div class="toolbar__divider"></div>
+            
+            <div class="toolbar__group toolbar__group--view">
+                <button class="btn btn--view" id="btnModeRaw" title="Raw View">
+                    <span>Raw</span>
+                </button>
+                <button class="btn btn--view active" id="btnModeSplit" title="Split View">
+                    <span>Split</span>
+                </button>
+                <button class="btn btn--view" id="btnModePreview" title="Preview">
+                    <span>Preview</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <main class="main" id="mainContent">
+            <div class="editor-container" id="editorContainer" data-view="split">
+                <!-- Editor Panel -->
+                <div class="panel panel--editor" id="editorPanel">
+                    <div class="panel__header">
+                        <span class="panel__title">Markdown</span>
+                        <span class="panel__status" id="editorStatus">Ready</span>
+                    </div>
+                    <div class="page-wrapper" id="editorWrapper">
+                        <div class="page page--editor">
+                            <textarea 
+                                class="editor" 
+                                id="editor" 
+                                placeholder="Start writing your markdown here..."
+                                spellcheck="true"
+                                aria-label="Markdown editor"
+                            ></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Resize Handle -->
+                <div class="resize-handle" id="resizeHandle" title="Drag to resize panels">
+                    <div class="resize-handle__bar"></div>
+                </div>
+                
+                <!-- Preview Panel -->
+                <div class="panel panel--preview" id="previewPanel">
+                    <div class="panel__header">
+                        <span class="panel__title">Preview</span>
+                        <span class="panel__status" id="previewStatus"></span>
+                    </div>
+                    <div class="page-wrapper" id="previewWrapper">
+                        <div class="page page--preview">
+                            <article class="preview markdown-body" id="preview" aria-label="Rendered preview"></article>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Status Bar -->
+        <footer class="statusbar" id="statusbar">
+            <div class="statusbar__left">
+                <span class="statusbar__item" id="statusDocument">
+                    <span class="statusbar__label">Document:</span>
+                    <span class="statusbar__value" id="documentName">Untitled.md</span>
+                </span>
+                <span class="statusbar__item" id="statusSaved">
+                    <span class="statusbar__indicator statusbar__indicator--saved"></span>
+                    <span class="statusbar__value">Saved</span>
+                </span>
+            </div>
+            <div class="statusbar__right">
+                <span class="statusbar__item" id="statusWords">
+                    <span class="statusbar__value">0</span>
+                    <span class="statusbar__label">words</span>
+                </span>
+                <span class="statusbar__item" id="statusChars">
+                    <span class="statusbar__value">0</span>
+                    <span class="statusbar__label">characters</span>
+                </span>
+                <span class="statusbar__item" id="statusLines">
+                    <span class="statusbar__value">Ln 1, Col 1</span>
+                </span>
+                <span class="statusbar__item" id="statusZoom">
+                    <span class="statusbar__value">100%</span>
+                </span>
+            </div>
+        </footer>
+        
+        <!-- Hidden File Input -->
+        <input type="file" id="fileInput" accept=".md,.markdown,.txt" hidden>
+        
+        <!-- Modals -->
+        <div class="modal-backdrop" id="modalBackdrop" hidden></div>
+        
+        <!-- Markdown Guide Modal -->
+        <dialog class="modal" id="markdownGuideModal">
+            <div class="modal__header">
+                <h2 class="modal__title">📖 Markdown Guide</h2>
+                <button class="modal__close" data-close-modal>&times;</button>
+            </div>
+            <div class="modal__content">
+                <div class="guide">
+                    <div class="guide__section">
+                        <h3>Text Formatting</h3>
+                        <table class="guide__table">
+                            <tr><td><code>**bold**</code></td><td><strong>bold</strong></td></tr>
+                            <tr><td><code>*italic*</code></td><td><em>italic</em></td></tr>
+                            <tr><td><code>~~strikethrough~~</code></td><td><s>strikethrough</s></td></tr>
+                            <tr><td><code>`code`</code></td><td><code>code</code></td></tr>
+                        </table>
+                    </div>
+                    <div class="guide__section">
+                        <h3>Headings</h3>
+                        <table class="guide__table">
+                            <tr><td><code># Heading 1</code></td></tr>
+                            <tr><td><code>## Heading 2</code></td></tr>
+                            <tr><td><code>### Heading 3</code></td></tr>
+                        </table>
+                    </div>
+                    <div class="guide__section">
+                        <h3>Lists</h3>
+                        <table class="guide__table">
+                            <tr><td><code>- Bullet item</code></td></tr>
+                            <tr><td><code>1. Numbered item</code></td></tr>
+                            <tr><td><code>- [ ] Task item</code></td></tr>
+                        </table>
+                    </div>
+                    <div class="guide__section">
+                        <h3>Links & Images</h3>
+                        <table class="guide__table">
+                            <tr><td><code>[link text](url)</code></td></tr>
+                            <tr><td><code>![alt text](image-url)</code></td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+        
+        <!-- Keyboard Shortcuts Modal -->
+        <dialog class="modal" id="keyboardShortcutsModal">
+            <div class="modal__header">
+                <h2 class="modal__title">⌨️ Keyboard Shortcuts</h2>
+                <button class="modal__close" data-close-modal>&times;</button>
+            </div>
+            <div class="modal__content">
+                <div class="shortcuts">
+                    <div class="shortcuts__group">
+                        <h3>File</h3>
+                        <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>N</kbd> <span>New document</span></div>
+                        <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>O</kbd> <span>Open file</span></div>
+                        <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>S</kbd> <span>Save</span></div>
+                        <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>P</kbd> <span>Print</span></div>
+                    </div>
+                    <div class="shortcuts__group">
+                        <h3>Formatting</h3>
+                        <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>B</kbd> <span>Bold</span></div>
+                        <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>I</kbd> <span>Italic</span></div>
+                        <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>K</kbd> <span>Insert link</span></div>
+                        <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>`</kbd> <span>Inline code</span></div>
+                    </div>
+                    <div class="shortcuts__group">
+                        <h3>View</h3>
+                        <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>1</kbd> <span>Raw view</span></div>
+                        <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>2</kbd> <span>Split view</span></div>
+                        <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>3</kbd> <span>Preview view</span></div>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+        
+        <!-- About Modal -->
+        <dialog class="modal" id="aboutModal">
+            <div class="modal__header">
+                <h2 class="modal__title">ℹ️ About MDPad</h2>
+                <button class="modal__close" data-close-modal>&times;</button>
+            </div>
+            <div class="modal__content">
+                <div class="about">
+                    <div class="about__logo">📝</div>
+                    <h3>MDPad</h3>
+                    <p class="about__version">Version 1.0.0</p>
+                    <p>A beautiful, responsive markdown editor with live preview. Built with vanilla HTML, CSS, and JavaScript.</p>
+                    <p class="about__features">
+                        <strong>Features:</strong> Live preview • Export to PDF • Word-like page view • Dark mode • Keyboard shortcuts
+                    </p>
+                </div>
+            </div>
+        </dialog>
+        
+        <!-- Find & Replace Modal -->
+        <dialog class="modal modal--find" id="findReplaceModal">
+            <div class="modal__header">
+                <h2 class="modal__title">🔍 Find & Replace</h2>
+                <button class="modal__close" data-close-modal>&times;</button>
+            </div>
+            <div class="modal__content">
+                <div class="find-replace">
+                    <div class="find-replace__row">
+                        <label for="findInput">Find:</label>
+                        <input type="text" id="findInput" class="input" placeholder="Search text...">
+                        <button class="btn btn--small" id="btnFindPrev">◀</button>
+                        <button class="btn btn--small" id="btnFindNext">▶</button>
+                    </div>
+                    <div class="find-replace__row">
+                        <label for="replaceInput">Replace:</label>
+                        <input type="text" id="replaceInput" class="input" placeholder="Replace with...">
+                        <button class="btn btn--small" id="btnReplace">Replace</button>
+                        <button class="btn btn--small" id="btnReplaceAll">All</button>
+                    </div>
+                    <div class="find-replace__options">
+                        <label><input type="checkbox" id="findCaseSensitive"> Case sensitive</label>
+                        <label><input type="checkbox" id="findWholeWord"> Whole word</label>
+                    </div>
+                    <div class="find-replace__status" id="findStatus"></div>
+                </div>
+            </div>
+        </dialog>
+        
+        <!-- Insert Link Modal -->
+        <dialog class="modal modal--insert" id="insertLinkModal">
+            <div class="modal__header">
+                <h2 class="modal__title">🔗 Insert Link</h2>
+                <button class="modal__close" data-close-modal>&times;</button>
+            </div>
+            <div class="modal__content">
+                <div class="insert-form">
+                    <div class="insert-form__row">
+                        <label for="linkText">Link Text:</label>
+                        <input type="text" id="linkText" class="input" placeholder="Display text">
+                    </div>
+                    <div class="insert-form__row">
+                        <label for="linkUrl">URL:</label>
+                        <input type="url" id="linkUrl" class="input" placeholder="https://example.com">
+                    </div>
+                    <div class="insert-form__actions">
+                        <button class="btn btn--secondary" data-close-modal>Cancel</button>
+                        <button class="btn btn--primary" id="btnInsertLinkConfirm">Insert</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+        
+        <!-- Insert Image Modal -->
+        <dialog class="modal modal--insert" id="insertImageModal">
+            <div class="modal__header">
+                <h2 class="modal__title">🖼️ Insert Image</h2>
+                <button class="modal__close" data-close-modal>&times;</button>
+            </div>
+            <div class="modal__content">
+                <div class="insert-form">
+                    <div class="insert-form__row">
+                        <label for="imageAlt">Alt Text:</label>
+                        <input type="text" id="imageAlt" class="input" placeholder="Image description">
+                    </div>
+                    <div class="insert-form__row">
+                        <label for="imageUrl">Image URL:</label>
+                        <input type="url" id="imageUrl" class="input" placeholder="https://example.com/image.png">
+                    </div>
+                    <div class="insert-form__actions">
+                        <button class="btn btn--secondary" data-close-modal>Cancel</button>
+                        <button class="btn btn--primary" id="btnInsertImageConfirm">Insert</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+        
+        <!-- Insert Table Modal -->
+        <dialog class="modal modal--insert" id="insertTableModal">
+            <div class="modal__header">
+                <h2 class="modal__title">📊 Insert Table</h2>
+                <button class="modal__close" data-close-modal>&times;</button>
+            </div>
+            <div class="modal__content">
+                <div class="insert-form">
+                    <div class="insert-form__row insert-form__row--inline">
+                        <div>
+                            <label for="tableRows">Rows:</label>
+                            <input type="number" id="tableRows" class="input input--small" value="3" min="1" max="20">
+                        </div>
+                        <div>
+                            <label for="tableCols">Columns:</label>
+                            <input type="number" id="tableCols" class="input input--small" value="3" min="1" max="10">
+                        </div>
+                    </div>
+                    <div class="insert-form__row">
+                        <label><input type="checkbox" id="tableHeader" checked> Include header row</label>
+                    </div>
+                    <div class="insert-form__actions">
+                        <button class="btn btn--secondary" data-close-modal>Cancel</button>
+                        <button class="btn btn--primary" id="btnInsertTableConfirm">Insert</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+    </div>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="file-ops.js"></script>
+    <script src="toolbar.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
