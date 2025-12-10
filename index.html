@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
-        content="MDPad - A beautiful online markdown editor with live preview, Word-like page view, and comprehensive editing tools.">
+        content="MDPad - A beautiful online markdown editor with live multi-page view and comprehensive editing tools.">
     <title>MDPad - Markdown Notepad</title>
 
     <!-- Favicon -->
@@ -150,8 +150,8 @@
                         <button class="dropdown__item active" id="btnViewSplit" title="Split View">
                             <span class="dropdown__icon">📐</span> Split
                         </button>
-                        <button class="dropdown__item" id="btnViewPreview" title="Preview Only">
-                            <span class="dropdown__icon">👁️</span> Preview
+                        <button class="dropdown__item" id="btnViewPreview" title="Page View Only">
+                            <span class="dropdown__icon">📄</span> Page View
                         </button>
                         <div class="dropdown__divider"></div>
                         <button class="dropdown__item" id="btnZoomIn" title="Zoom In">
@@ -270,8 +270,8 @@
                 <button class="btn btn--view active" id="btnModeSplit" title="Split View">
                     <span>Split</span>
                 </button>
-                <button class="btn btn--view" id="btnModePreview" title="Preview">
-                    <span>Preview</span>
+                <button class="btn btn--view" id="btnModePreview" title="Page View">
+                    <span>Page View</span>
                 </button>
             </div>
         </div>
@@ -304,7 +304,7 @@
                 <!-- Preview Panel -->
                 <div class="panel panel--preview" id="previewPanel">
                     <div class="panel__header">
-                        <span class="panel__title">Preview</span>
+                        <span class="panel__title">Page View</span>
                         <span class="panel__status" id="previewStatus"></span>
                     </div>
                     <div class="page-wrapper" id="previewWrapper">
@@ -460,8 +460,8 @@
                         <h3>View</h3>
                         <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>1</kbd> <span>Raw view</span></div>
                         <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>2</kbd> <span>Split view</span></div>
-                        <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>3</kbd> <span>Preview view</span></div>
-                        <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>P</kbd> <span>WYSIWYG Toggle</span></div>
+                        <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>3</kbd> <span>Page view</span></div>
+                        <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>E</kbd> <span>Edit Page View</span></div>
                     </div>
                 </div>
             </div>
@@ -481,7 +481,7 @@
                     <p>A beautiful, responsive markdown editor with live preview. Built with vanilla HTML, CSS, and
                         JavaScript.</p>
                     <p class="about__features">
-                        <strong>Features:</strong> Live preview • Export to PDF • Word-like page view • Dark mode •
+                        <strong>Features:</strong> Live page view • Export to PDF • Multi-page layout • Dark mode •
                         Custom Undo/Redo • Secure HTML
                     </p>
                 </div>

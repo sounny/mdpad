@@ -162,9 +162,9 @@ const MDPad = (function () {
         editor.addEventListener('keydown', handleUndoRedo);
         editor.addEventListener('keydown', handleAutoPairs);
 
-        // Toggle WYSIWYG Shortcut (Ctrl+Alt+W)
+        // Toggle Edit Page View Shortcut (Ctrl+E)
         window.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.altKey && e.code === 'KeyW') {
+            if (e.ctrlKey && e.code === 'KeyE' && !e.shiftKey && !e.altKey) {
                 e.preventDefault();
                 toggleWYSIWYG();
             }
@@ -172,7 +172,7 @@ const MDPad = (function () {
     }
 
     /**
-     * Toggle WYSIWYG Mode
+     * Toggle Edit Page View Mode
      */
     function toggleWYSIWYG() {
         if (!typeof WYSIWYG === 'undefined') return;
@@ -180,13 +180,13 @@ const MDPad = (function () {
         WYSIWYG.isEnabled = !WYSIWYG.isEnabled;
 
         if (WYSIWYG.isEnabled) {
-            // Enter WYSIWYG
+            // Enter Edit Page View Mode
             editorPanel.style.display = 'none';
             document.getElementById('previewPanel').style.width = '100%';
             renderPreview(); // Re-render with contenteditable=true
-            showNotification('WYSIWYG Mode Enabled');
+            showNotification('Edit Page View Enabled');
         } else {
-            // Exit WYSIWYG
+            // Exit Edit Mode
             editorPanel.style.display = 'flex';
             document.getElementById('previewPanel').style.width = '50%'; // Reset to split
             editorPanel.style.width = '50%';
@@ -410,11 +410,11 @@ const MDPad = (function () {
     function loadWelcomeContent() {
         const welcomeContent = `# Welcome to MDPad! 📝
 
-MDPad is a beautiful, feature-rich markdown editor with **live preview** and a Word-like page view.
+MDPad is a beautiful, feature-rich markdown editor with **live multi-page view**.
 
 ## New in v2.0
-- **Visual Pagination**: Long content is automatically split into A4 pages.
-- **WYSIWYG Mode**: Toggle edit mode (Ctrl+Alt+W) to type directly on the page!
+- **Visual Pagination**: Long content is automatically split into visual pages.
+- **Edit Page View**: Toggle edit mode (Ctrl+E) to type directly on the page!
 
 ## Getting Started
 
@@ -484,7 +484,7 @@ greet('World');
 | Ctrl+S | Save |
 | Ctrl+1/2/3 | Switch View |
 | Ctrl+Z | Undo |
-| Ctrl+Alt+W | Toggle WYSIWYG |
+| Ctrl+E | Edit Page View |
 
 ---
 
