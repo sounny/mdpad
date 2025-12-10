@@ -37,10 +37,12 @@ const WYSIWYG = (function () {
 
         // Aggregate HTML from all pages
         const pages = container.querySelectorAll('.page-content');
-        let fullHtml = '';
+        const htmlParts = [];
         pages.forEach(page => {
-            fullHtml += page.innerHTML + '\n';
+            htmlParts.push(page.innerHTML);
         });
+
+        const fullHtml = htmlParts.join('\n\n');
 
         // Convert to Markdown
         return turndownService.turndown(fullHtml);

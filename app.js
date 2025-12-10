@@ -162,6 +162,16 @@ const MDPad = (function () {
         editor.addEventListener('keydown', handleUndoRedo);
         editor.addEventListener('keydown', handleAutoPairs);
 
+        // Listen for view changes from Toolbar
+        document.addEventListener('viewchange', (e) => {
+            const mode = e.detail.mode;
+            if (mode === 'preview') {
+                setWYSIWYG(true);
+            } else {
+                setWYSIWYG(false);
+            }
+        });
+
         // Toggle Edit Page View Shortcut (Ctrl+E)
         window.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.code === 'KeyE' && !e.shiftKey && !e.altKey) {
@@ -172,27 +182,37 @@ const MDPad = (function () {
     }
 
     /**
-     * Toggle Edit Page View Mode
+     * Set Edit Page View Mode
+     * @param {boolean} enabled
      */
-    function toggleWYSIWYG() {
-        if (!typeof WYSIWYG === 'undefined') return;
+    function setWYSIWYG(enabled) {
+        if (typeof WYSIWYG === 'undefined') return;
 
-        WYSIWYG.isEnabled = !WYSIWYG.isEnabled;
+        WYSIWYG.isEnabled = enabled;
 
         if (WYSIWYG.isEnabled) {
             // Enter Edit Page View Mode
             editorPanel.style.display = 'none';
             document.getElementById('previewPanel').style.width = '100%';
             renderPreview(); // Re-render with contenteditable=true
-            showNotification('Edit Page View Enabled');
+            // Only show notification if manually toggled or explicit interaction, 
+            // but for seamless switching we might want to be quiet or show a subtle hint.
+            // keeping notification for now but maybe shorter?
         } else {
             // Exit Edit Mode
             editorPanel.style.display = 'flex';
             document.getElementById('previewPanel').style.width = '50%'; // Reset to split
             editorPanel.style.width = '50%';
             renderPreview(); // Re-render read-only
-            showNotification('Split View Enabled');
         }
+    }
+
+    /**
+     * Toggle Edit Page View Mode
+     */
+    function toggleWYSIWYG() {
+        setWYSIWYG(!WYSIWYG.isEnabled);
+        showNotification(WYSIWYG.isEnabled ? 'Edit Page View Enabled' : 'Split View Enabled');
     }
 
     // Helper for notifications (simple version)

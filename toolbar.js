@@ -146,6 +146,10 @@ const Toolbar = (function () {
         if (mode !== 'preview' && editor) {
             editor.focus();
         }
+
+        // Dispatch event for app.js to handle
+        const event = new CustomEvent('viewchange', { detail: { mode } });
+        document.dispatchEvent(event);
     }
 
     /**
