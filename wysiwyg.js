@@ -21,8 +21,9 @@ const WYSIWYG = (function () {
                 headingStyle: 'atx',
                 codeBlockStyle: 'fenced'
             });
-            // Configure tables support if plugin available, standard doesn't support generic tables well
-            // For MVP v2.0, standard turndown handles basic blocks.
+            if (typeof turndownPluginGfm !== 'undefined') {
+                turndownService.use(turndownPluginGfm.gfm);
+            }
         } else {
             console.error('TurndownService is missing');
         }
