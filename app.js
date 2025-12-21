@@ -120,10 +120,27 @@ const MDPad = (function () {
         };
 
         renderer.listitem = function (text, task, checked) {
-            if (task) {
-                return `<li class="task-list-item"><input type="checkbox" ${checked ? 'checked' : ''} disabled> ${text}</li>`;
+            let content = text;
+            let isTask = task;
+            let isChecked = checked;
+
+            if (typeof text === 'object' && text) {
+                const token = text;
+                isTask = token.task;
+                isChecked = token.checked;
+                if (typeof token.text === 'string') {
+                    content = token.text;
+                } else if (Array.isArray(token.tokens) && typeof marked.parseInline === 'function') {
+                    content = marked.parseInline(token.tokens);
+                } else {
+                    content = '';
+                }
             }
-            return `<li>${text}</li>`;
+
+            if (isTask) {
+                return `<li class="task-list-item"><input type="checkbox" ${isChecked ? 'checked' : ''} disabled> ${content}</li>`;
+            }
+            return `<li>${content}</li>`;
         };
 
         marked.setOptions({
