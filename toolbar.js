@@ -63,33 +63,66 @@ const Toolbar = (function () {
      */
     function setupFormatButtons() {
         // Bold
-        setupButton('btnBold', () => wrapSelection('**', '**'));
+        setupButton('btnBold', () => {
+            if (formatWYSIWYG('bold')) return;
+            wrapSelection('**', '**');
+        });
 
         // Italic
-        setupButton('btnItalic', () => wrapSelection('*', '*'));
+        setupButton('btnItalic', () => {
+            if (formatWYSIWYG('italic')) return;
+            wrapSelection('*', '*');
+        });
 
         // Strikethrough
-        setupButton('btnStrikethrough', () => wrapSelection('~~', '~~'));
+        setupButton('btnStrikethrough', () => {
+            if (formatWYSIWYG('strikethrough')) return;
+            wrapSelection('~~', '~~');
+        });
 
         // Inline code
-        setupButton('btnInlineCode', () => wrapSelection('`', '`'));
+        setupButton('btnInlineCode', () => {
+            if (formatWYSIWYG('code')) return;
+            wrapSelection('`', '`');
+        });
 
         // Bullet list
-        setupButton('btnBulletList', () => insertAtLineStart('- '));
+        setupButton('btnBulletList', () => {
+            if (formatWYSIWYG('bulletList')) return;
+            insertAtLineStart('- ');
+        });
 
         // Numbered list
-        setupButton('btnNumberedList', () => insertNumberedList());
+        setupButton('btnNumberedList', () => {
+            if (formatWYSIWYG('numberedList')) return;
+            insertNumberedList();
+        });
 
         // Task list
-        setupButton('btnTaskList', () => insertAtLineStart('- [ ] '));
+        setupButton('btnTaskList', () => {
+            if (formatWYSIWYG('taskList')) return;
+            insertAtLineStart('- [ ] ');
+        });
 
         // Blockquote
-        setupButton('btnBlockquote', () => insertAtLineStart('> '));
-        setupButton('btnInsertQuote', () => insertAtLineStart('> '));
+        setupButton('btnBlockquote', () => {
+            if (formatWYSIWYG('blockquote')) return;
+            insertAtLineStart('> ');
+        });
+        setupButton('btnInsertQuote', () => {
+            if (formatWYSIWYG('blockquote')) return;
+            insertAtLineStart('> ');
+        });
 
         // Code block
-        setupButton('btnCodeBlock', () => insertCodeBlock());
-        setupButton('btnInsertCode', () => insertCodeBlock());
+        setupButton('btnCodeBlock', () => {
+            if (formatWYSIWYG('codeBlock')) return;
+            insertCodeBlock();
+        });
+        setupButton('btnInsertCode', () => {
+            if (formatWYSIWYG('codeBlock')) return;
+            insertCodeBlock();
+        });
 
         // Link
         setupButton('btnLink', () => openModal('insertLinkModal'));
@@ -103,7 +136,137 @@ const Toolbar = (function () {
         setupButton('btnInsertTable', () => openModal('insertTableModal'));
 
         // Horizontal rule
-        setupButton('btnInsertHR', () => insertText('\n\n---\n\n'));
+        setupButton('btnInsertHR', () => {
+            if (formatWYSIWYG('hr')) return;
+            insertText('\n\n---\n\n');
+        });
+    }
+
+    /**
+     * Apply formatting in WYSIWYG (Edit Page View) mode.
+     * Uses execCommand and Selection APIs to format contenteditable content.
+     * @param {string} type - The formatting type
+     * @param {string} [value] - Optional value (e.g. heading level '1'-'6')
+     * @returns {boolean} true if handled in WYSIWYG mode, false otherwise
+     */
+    function formatWYSIWYG(type, value = '') {
+        if (typeof WYSIWYG === 'undefined' || !WYSIWYG.isEnabled) return false;
+
+        const pagesContainer = document.getElementById('pagesContainer');
+        if (!pagesContainer) return false;
+
+        // ── Restore the selection the user had before clicking the toolbar ──
+        // The toolbar mousedown listener in wysiwyg.js already saved it.
+        WYSIWYG.restoreSelection();
+
+        // Verify the selection is actually inside the pages now
+        const sel = window.getSelection();
+        const isInPages = sel && sel.rangeCount > 0 &&
+            pagesContainer.contains(sel.getRangeAt(0).commonAncestorContainer);
+
+        if (!isInPages) {
+            // No valid selection in the page view — stay in WYSIWYG context
+            // but skip the textarea fallback.
+            return true;
+        }
+
+        switch (type) {
+            case 'bold':
+                document.execCommand('bold', false, null);
+                break;
+
+            case 'italic':
+                document.execCommand('italic', false, null);
+                break;
+
+            case 'strikethrough':
+                document.execCommand('strikethrough', false, null);
+                break;
+
+            case 'code': {
+                const range = sel.getRangeAt(0);
+                const selectedText = range.toString();
+                if (selectedText) {
+                    const codeEl = document.createElement('code');
+                    codeEl.textContent = selectedText;
+                    range.deleteContents();
+                    range.insertNode(codeEl);
+                    const newRange = document.createRange();
+                    newRange.selectNodeContents(codeEl);
+                    sel.removeAllRanges();
+                    sel.addRange(newRange);
+                }
+                break;
+            }
+
+            case 'heading': {
+                const level = parseInt(value);
+                if (level >= 1 && level <= 6) {
+                    document.execCommand('formatBlock', false, `h${level}`);
+                } else {
+                    document.execCommand('formatBlock', false, 'p');
+                }
+                break;
+            }
+
+            case 'bulletList':
+                document.execCommand('insertUnorderedList', false, null);
+                break;
+
+            case 'numberedList':
+                document.execCommand('insertOrderedList', false, null);
+                break;
+
+            case 'taskList': {
+                document.execCommand('insertUnorderedList', false, null);
+                const selAfter = window.getSelection();
+                if (selAfter && selAfter.rangeCount > 0) {
+                    const li = selAfter.getRangeAt(0).startContainer.parentElement?.closest('li');
+                    if (li && !li.querySelector('input[type="checkbox"]')) {
+                        const cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.style.marginRight = '6px';
+                        li.classList.add('task-list-item');
+                        li.insertBefore(cb, li.firstChild);
+                    }
+                }
+                break;
+            }
+
+            case 'blockquote':
+                document.execCommand('formatBlock', false, 'blockquote');
+                break;
+
+            case 'codeBlock': {
+                const bqRange = sel.getRangeAt(0);
+                const selectedTxt = bqRange.toString();
+                const pre = document.createElement('pre');
+                const code = document.createElement('code');
+                code.textContent = selectedTxt || 'code here';
+                pre.appendChild(code);
+                bqRange.deleteContents();
+                bqRange.insertNode(pre);
+                const newRange = document.createRange();
+                newRange.selectNodeContents(code);
+                sel.removeAllRanges();
+                sel.addRange(newRange);
+                break;
+            }
+
+            case 'hr':
+                document.execCommand('insertHorizontalRule', false, null);
+                break;
+
+            default:
+                return false;
+        }
+
+        // Trigger Turndown sync back to Markdown
+        const focusedPage = document.activeElement?.closest('.page-content');
+        const target = focusedPage || pagesContainer;
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+
+        return true;
     }
 
     /**
@@ -165,8 +328,14 @@ const Toolbar = (function () {
         setupButton('btnPrint', () => FileOps.printDocument());
 
         // Edit menu
-        setupButton('btnUndo', () => document.execCommand('undo'));
-        setupButton('btnRedo', () => document.execCommand('redo'));
+        setupButton('btnUndo', () => {
+            if (window.mdHistory) window.mdHistory.undo();
+            else document.execCommand('undo');
+        });
+        setupButton('btnRedo', () => {
+            if (window.mdHistory) window.mdHistory.redo();
+            else document.execCommand('redo');
+        });
         setupButton('btnSelectAll', () => {
             if (editor) {
                 editor.select();
@@ -210,6 +379,11 @@ const Toolbar = (function () {
         select.addEventListener('change', () => {
             const level = select.value;
             if (level) {
+                // In WYSIWYG mode, use execCommand for the live page
+                if (formatWYSIWYG('heading', level)) {
+                    select.value = '';
+                    return;
+                }
                 insertHeading(parseInt(level));
             }
             select.value = '';
@@ -228,11 +402,11 @@ const Toolbar = (function () {
                 switch (e.key.toLowerCase()) {
                     case 'b':
                         e.preventDefault();
-                        wrapSelection('**', '**');
+                        if (!formatWYSIWYG('bold')) wrapSelection('**', '**');
                         break;
                     case 'i':
                         e.preventDefault();
-                        wrapSelection('*', '*');
+                        if (!formatWYSIWYG('italic')) wrapSelection('*', '*');
                         break;
                     case 'k':
                         e.preventDefault();
@@ -240,7 +414,7 @@ const Toolbar = (function () {
                         break;
                     case '`':
                         e.preventDefault();
-                        wrapSelection('`', '`');
+                        if (!formatWYSIWYG('code')) wrapSelection('`', '`');
                         break;
                     case 's':
                         e.preventDefault();

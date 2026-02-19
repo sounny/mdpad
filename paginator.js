@@ -87,6 +87,13 @@ const Paginator = (function () {
         if (isEditable) {
             pageContent.contentEditable = true;
             pageContent.classList.add('page-content--editable');
+            
+            // Enable checkboxes for task lists in edit mode
+            setTimeout(() => {
+                pageContent.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                    cb.removeAttribute('disabled');
+                });
+            }, 0);
         }
         return pageContent;
     }

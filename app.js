@@ -55,16 +55,25 @@ const MDPad = (function () {
         if (typeof WYSIWYG !== 'undefined') {
             WYSIWYG.init(editor);
             WYSIWYG.setupListeners(pagesContainer, (newMarkdown) => {
+                // If the markdown is the same as current, skip
+                if (editor.value === newMarkdown) return;
+
                 // Update editor value without triggering input
                 const scrollPos = editor.scrollTop;
                 editor.value = newMarkdown;
                 editor.scrollTop = scrollPos;
 
-                // We don't re-render preview here to avoid losing cursor focus in contenteditable
-                // But we should push to history?
-                // For now, let's just update the model.
+                // Update stats and file status
                 updateStats();
                 FileOps.markAsUnsaved();
+
+                // Capture history state
+                if (history) {
+                    clearTimeout(editor.historyTimeout);
+                    editor.historyTimeout = setTimeout(() => {
+                        history.pushState();
+                    }, 1000); // Slightly longer delay for WYSIWYG sync
+                }
             });
         }
 
@@ -104,24 +113,57 @@ const MDPad = (function () {
 
         const renderer = new marked.Renderer();
 
-        renderer.code = function (code, language) {
+        renderer.code = function (codeOrToken, language) {
+            let code, lang;
+            // Handle new Marked.js object signature or old string signature
+            if (typeof codeOrToken === 'object' && codeOrToken !== null && 'text' in codeOrToken) {
+                code = codeOrToken.text;
+                lang = codeOrToken.lang;
+            } else {
+                code = codeOrToken;
+                lang = language;
+            }
+
             let highlighted = code;
-            if (typeof hljs !== 'undefined' && language && hljs.getLanguage(language)) {
-                try { highlighted = hljs.highlight(code, { language }).value; } catch (e) { }
+            if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
+                try { highlighted = hljs.highlight(code, { language: lang }).value; } catch (e) { }
             } else if (typeof hljs !== 'undefined') {
                 try { highlighted = hljs.highlightAuto(code).value; } catch (e) { }
             }
-            return `<pre><code class="hljs ${language || ''}">${highlighted}</code></pre>`;
+            return `<pre><code class="hljs ${lang || ''}">${highlighted}</code></pre>`;
         };
 
-        renderer.link = function (href, title, text) {
-            const titleAttr = title ? ` title="${title}"` : '';
-            return `<a href="${href}"${titleAttr} target="_blank" rel="noopener noreferrer">${text}</a>`;
+        renderer.link = function (hrefOrToken, title, text) {
+            let linkHref, linkTitle, linkText;
+            if (typeof hrefOrToken === 'object' && hrefOrToken !== null && 'href' in hrefOrToken) {
+                linkHref = hrefOrToken.href;
+                linkTitle = hrefOrToken.title;
+                linkText = hrefOrToken.text;
+            } else {
+                linkHref = hrefOrToken;
+                linkTitle = title;
+                linkText = text;
+            }
+
+            const titleAttr = linkTitle ? ` title="${linkTitle}"` : '';
+            return `<a href="${linkHref}"${titleAttr} target="_blank" rel="noopener noreferrer">${linkText}</a>`;
         };
 
-        renderer.listitem = function (text, task, checked) {
-            if (task) {
-                return `<li class="task-list-item"><input type="checkbox" ${checked ? 'checked' : ''} disabled> ${text}</li>`;
+        renderer.listitem = function (itemOrText, task, checked) {
+            let text, isTask, isChecked;
+            
+            if (typeof itemOrText === 'object' && itemOrText !== null && 'text' in itemOrText) {
+                text = itemOrText.text;
+                isTask = itemOrText.task;
+                isChecked = itemOrText.checked;
+            } else {
+                text = itemOrText;
+                isTask = task;
+                isChecked = checked;
+            }
+
+            if (isTask) {
+                return `<li class="task-list-item"><input type="checkbox" ${isChecked ? 'checked' : ''} disabled> ${text}</li>`;
             }
             return `<li>${text}</li>`;
         };
@@ -129,11 +171,7 @@ const MDPad = (function () {
         marked.setOptions({
             renderer: renderer,
             gfm: true,
-            breaks: true,
-            pedantic: false,
-            smartLists: true,
-            smartypants: false,
-            xhtml: false
+            breaks: true
         });
     }
 

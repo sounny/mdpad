@@ -6,9 +6,13 @@ A beautiful, feature-rich online markdown editor with live preview and Word-like
 
 ✨ **Live Preview** - See your markdown rendered instantly as you type
 
+🎨 **Glassmorphism UI** - Modern, translucent design with dynamic mesh gradients
+
 📄 **Word-like Page View** - Familiar document layout with proper margins
 
 🌙 **Dark Mode** - Easy on the eyes for night-time editing
+
+💅 **Premium Typography** - Optimized for readability (Inter & JetBrains Mono)
 
 📑 **Export to PDF** - Generate print-ready PDF documents
 
@@ -31,7 +35,7 @@ A beautiful, feature-rich online markdown editor with live preview and Word-like
 ## Keyboard Shortcuts
 
 | Shortcut | Action          |
-|----------|-----------------|
+| -------- | --------------- |
 | Ctrl+B   | Bold            |
 | Ctrl+I   | Italic          |
 | Ctrl+K   | Insert Link     |
