@@ -23,7 +23,6 @@ const WYSIWYG = (function () {
                 headingStyle: 'atx',
                 codeBlockStyle: 'fenced'
             });
-
             // Rule for Task Lists
             turndownService.addRule('taskList', {
                 filter: function (node) {
