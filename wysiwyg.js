@@ -23,6 +23,11 @@ const WYSIWYG = (function () {
                 headingStyle: 'atx',
                 codeBlockStyle: 'fenced'
             });
+
+            if (typeof turndownPluginGfm !== 'undefined') {
+                turndownService.use(turndownPluginGfm.gfm);
+            }
+
             // Rule for Task Lists
             turndownService.addRule('taskList', {
                 filter: function (node) {

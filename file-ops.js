@@ -267,8 +267,9 @@ const FileOps = (function () {
      * Export to PDF
      */
     function exportToPDF() {
-        const preview = document.getElementById('preview');
-        if (!preview) {
+        // Target the pages container since paginator replaces the original preview
+        const pagesContainer = document.getElementById('pagesContainer');
+        if (!pagesContainer) {
             showNotification('Preview not available', 'error');
             return;
         }
@@ -282,16 +283,24 @@ const FileOps = (function () {
         showNotification('Generating PDF...', 'info');
 
         const opt = {
-            margin: [0.75, 0.75, 0.75, 0.75],
+            margin: 0, // Margins are already built into the pages
             filename: currentFileName.replace(/\.md$/, '') + '.pdf',
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
 
-        // Clone preview for PDF generation
-        const clone = preview.cloneNode(true);
+        // Clone pagesContainer for PDF generation
+        const clone = pagesContainer.cloneNode(true);
+        
+        // Remove shadows and modify layout for printing
+        clone.style.padding = '0';
+        clone.style.gap = '0';
+        clone.querySelectorAll('.page').forEach(page => {
+            page.style.boxShadow = 'none';
+            page.style.margin = '0';
+            page.style.borderRadius = '0';
+        });
 
         html2pdf()
             .set(opt)
